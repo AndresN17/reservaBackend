@@ -9,6 +9,8 @@ const dotenv = require('dotenv');
 dotenv.config({ path: `.env.${app.get('env')}` });
 
 const PORT = process.env.PORT || 3000;
+const ROUTE = process.env.ROUTE;
+const VERSION = process.env.VERSION;
 
 //Setting the filestorage destination and the filename generation
 const fileStorage = multer.diskStorage({
@@ -29,6 +31,8 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+const authRoutes = require('./routes/auth');
+
 
 app.use(express.json());
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
@@ -40,6 +44,8 @@ app.use((req, res, next) => {
     next();
 })
 
+
+app.use(ROUTE + VERSION, authRoutes);
 
 // Error middleware handler
 app.use((err, req, res, next) => {
