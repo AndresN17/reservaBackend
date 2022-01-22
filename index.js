@@ -12,6 +12,17 @@ const PORT = process.env.PORT || 3000;
 const ROUTE = process.env.ROUTE;
 const VERSION = process.env.VERSION;
 
+const sequelize = require('./utils/database');
+const User = require('./models/user');
+const Image = require('./models/image');
+const News = require('./models/news');
+const Business = require('./models/business');
+const Category = require('./models/category');
+const Schedule = require('./models/localComment');
+const Local = require('./models/local');
+const LocalComment = require('./models/localComment');
+const NewsComment = require('./models/newsComment');
+
 //Setting the filestorage destination and the filename generation
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -32,6 +43,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
 
 
 app.use(express.json());
@@ -46,6 +58,7 @@ app.use((req, res, next) => {
 
 
 app.use(ROUTE + VERSION, authRoutes);
+app.use(ROUTE + VERSION, userRoutes);
 
 // Error middleware handler
 app.use((err, req, res, next) => {
@@ -55,7 +68,36 @@ app.use((err, req, res, next) => {
     res.status(errorStatus).json({ message: errorMessage, data: errorData });
 });
 
+//relaciones
+User.hasMany(News);
+News.belongsTo(User);
+User.hasMany(Business);
+Business.belongsTo(User);
+Business.hasMany(Local);
+Local.belongsTo(Business);
+Local.hasOne(Schedule);
+Schedule.belongsTo(Local);
+Local.belongsToMany(Image, { through: 'local_image' });
+Image.belongsToMany(Local, { through: 'local_image' });
+News.belongsToMany(Image, { through: 'news_image' });
+Image.belongsToMany(News, { through: 'news_image' });
+News.belongsToMany(Category, { through: 'news_category' });
+Category.belongsToMany(News, { through: 'news_category' });
+User.hasMany(LocalComment);
+LocalComment.belongsTo(User);
+Local.hasMany(LocalComment);
+LocalComment.belongsTo(Local);
+News.hasMany(NewsComment);
+NewsComment.belongsTo(News);
+User.hasMany(NewsComment);
+NewsComment.belongsTo(User);
 
-const server = app.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}`);
-});
+
+
+
+sequelize.sync(/* { force: true } */)
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`App listening on port ${PORT}`);
+        });
+    }).catch(err => console.log(err));
