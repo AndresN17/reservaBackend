@@ -15,7 +15,8 @@ const Local = sequelize.define('local', {
 
     },
     likes: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
     },
     city: {
         type: Sequelize.STRING,
