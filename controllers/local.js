@@ -24,7 +24,7 @@ exports.getLocals = async (req, res, next) => {
 exports.getLocalById = async (req, res, next) => {
     try {
         const { localId } = req.params;
-        const localExist = await Local.finByPk(localId);
+        const localExist = await Local.findByPk(localId);
         if (!localExist) {
             const error = new Error("Local doesn't exists.");
             error.statusCode = 404;
@@ -79,7 +79,7 @@ exports.updateLocal = async (req, res, next) => {
 exports.deleteLocal = async (req, res, next) => {
     try {
         const { localId } = req.params;
-        const localExist = await Local.finByPk(localId);
+        const localExist = await Local.findByPk(localId);
         if (!localExist) {
             const error = new Error("Local doesn't exists.");
             error.statusCode = 404;

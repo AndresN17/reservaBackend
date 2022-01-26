@@ -22,7 +22,7 @@ exports.getNews = async (req, res, next) => {
 exports.getNewsById = async (req, res, next) => {
     try {
         const { newsId } = req.params;
-        const newsExists = await News.findById(newsId);
+        const newsExists = await News.findByPk(newsId);
         if (!newsExists) {
             const error = new Error("There is no news");
             error.statusCode = 404;
@@ -56,7 +56,7 @@ exports.updateNews = async (req, res, next) => {
     try {
         const { newsId } = req.params;
         const { title, description, likes } = req.body;
-        const newsExists = await News.findById(newsId);
+        const newsExists = await News.findByPk(newsId);
         if (!newsExists) {
             const error = new Error("The news doesn't exists");
             error.statusCode = 404;
@@ -76,7 +76,7 @@ exports.updateNews = async (req, res, next) => {
 exports.deleteNews = async (req, res, next) => {
     try {
         const { newsId } = req.params;
-        const newsExists = await News.findById(newsId);
+        const newsExists = await News.findByPk(newsId);
         if (!newsExists) {
             const error = new Error("The news doesn't exists");
             error.statusCode = 404;
