@@ -54,10 +54,19 @@ exports.createLocal = async (req, res, next) => {
     }
 };
 
+//Falta agregar las imagenes
 exports.updateLocal = async (req, res, next) => {
     try {
-
-
+        const { localId } = req.params;
+        const { name, direction, costPerHour, city } = req.body;
+        const local = await Local.findByPk(localId);
+        if (!local) {
+            const error = new Error("Local doesn't exists.");
+            error.statusCode = 404;
+            throw error;
+        }
+        await local.update({ name: name, direction: direction, costPerHour: costPerHour, city: city });
+        res.status(201).json({ message: "Local updated successfully.", local: local });
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -77,7 +86,7 @@ exports.deleteLocal = async (req, res, next) => {
             throw error;
         }
         await localExist.destroy();
-        res.status(201).json({message:"Local deleted succesfully."});
+        res.status(201).json({ message: "Local deleted succesfully." });
 
     } catch (err) {
         if (!err.statusCode) {
