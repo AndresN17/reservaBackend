@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const multer = require('multer');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
 //Charging the environment variables
@@ -11,6 +12,7 @@ dotenv.config({ path: `.env.${app.get('env')}` });
 const PORT = process.env.PORT || 3000;
 const ROUTE = process.env.ROUTE;
 const VERSION = process.env.VERSION;
+const MONGO_URL = process.env.MONGO_URL;
 
 const sequelize = require('./utils/database');
 const User = require('./models/user');
@@ -22,6 +24,7 @@ const Schedule = require('./models/localComment');
 const Local = require('./models/local');
 const LocalComment = require('./models/localComment');
 const NewsComment = require('./models/newsComment');
+const Rol = require('./models/rol');
 
 //Setting the filestorage destination and the filename generation
 const fileStorage = multer.diskStorage({
@@ -44,6 +47,11 @@ const fileFilter = (req, file, cb) => {
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const rolRoutes = require('./routes/rol');
+const businessRoutes = require('./routes/business');
+const localRoutes = require('./routes/local');
+const categoryRoutes = require('./routes/category');
+const reportRoutes = require('./routes/report');
 
 
 app.use(express.json());
@@ -54,11 +62,17 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
     next();
-})
+});
 
 
 app.use(ROUTE + VERSION, authRoutes);
 app.use(ROUTE + VERSION, userRoutes);
+app.use(ROUTE + VERSION, rolRoutes);
+app.use(ROUTE + VERSION, businessRoutes);
+app.use(ROUTE + VERSION, localRoutes);
+app.use(ROUTE + VERSION, reportRoutes);
+app.use(ROUTE + VERSION, categoryRoutes);
+
 
 // Error middleware handler
 app.use((err, req, res, next) => {
@@ -91,13 +105,17 @@ News.hasMany(NewsComment);
 NewsComment.belongsTo(News);
 User.hasMany(NewsComment);
 NewsComment.belongsTo(User);
+Rol.hasMany(User);
+User.belongsTo(Rol);
 
 
 
 
 sequelize.sync(/* { force: true } */)
     .then(() => {
-        app.listen(PORT, () => {
-            console.log(`App listening on port ${PORT}`);
+        mongoose.connect(MONGO_URL).then(() => {
+            app.listen(PORT, () => {
+                console.log(`App listening on port ${PORT}`);
+            });
         });
     }).catch(err => console.log(err));

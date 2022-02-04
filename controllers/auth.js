@@ -3,6 +3,7 @@ const User = require('../models/user');
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const Rol = require('../models/rol');
 
 exports.signUp = async (req, res, next) => {
     const errors = validationResult(req);
@@ -10,7 +11,7 @@ exports.signUp = async (req, res, next) => {
         return res.status(422).json({ error: errors.array() });
     }
 
-    const { email, userName, firstName, lastName, password, image } = req.body;
+    let { email, userName, firstName, lastName, password, image, rolId } = req.body;
     try {
         const userExist = await User.findOne({ where: { email: email } });
         if (userExist) {
@@ -25,7 +26,8 @@ exports.signUp = async (req, res, next) => {
             firstName: firstName,
             lastName: lastName,
             password: hashedPassword,
-            image: image
+            image: image,
+            rolId: rolId,
         });
         res.status(201).json({
             message: 'user created succesfully.',
@@ -45,8 +47,8 @@ exports.signUp = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
-    const { email, password } = req.body;
     try {
+        const { email, password } = req.body;
         const user = await User.findOne({ where: { email: email } });
         if (!user) {
             const error = new Error("wrong credentials");
@@ -59,13 +61,21 @@ exports.login = async (req, res, next) => {
             error.statusCode = 401;
             throw error;
         }
+        const rol = await Rol.findByPk(user.rolId);
+        let isAdmin = false;
+        if (rol.name.toString() === "admin") {
+            console.log("es admin");
+            isAdmin = true;
+        }
         const SECRET = process.env.SECRET;
         const token = jwt.sign({
             email: user.email,
             userId: user.id,
         }, SECRET, { expiresIn: '1h' });
 
-        res.status(200).json({ token: token });
+        const expiresIn = 3600;
+
+        res.status(200).json({ token: token, isAdmin: isAdmin, expiresIn: expiresIn, userId: user.id });
 
     } catch (err) {
         if (!err.statusCode) {

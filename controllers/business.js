@@ -1,9 +1,23 @@
 'use strict'
 const Business = require('../models/business');
+const User = require('../models/user');
 
 exports.getBusinesses = async (req, res, next) => {
     try {
-        const businesses = await Business.findAll();
+        const userId = req.params.userId;
+        console.log(userId);
+        let businesses;
+        if (userId) {
+            businesses = await Business.findAll({
+                where: { userId: userId },
+                include: User,
+            });
+        } else {
+            businesses = await Business.findAll({
+                include: User,
+            });
+        }
+
         if (!businesses) {
             const error = new Error("There is no Businesses.");
             error.statusCode = 404;
@@ -52,7 +66,8 @@ exports.createBusiness = async (req, res, next) => {
             name: name,
             description: description,
             status: status,
-            image: image
+            image: image,
+            userId: req.userId
         });
 
         res.status(201).json({ message: "Business created succesfully", business: business });
@@ -69,19 +84,20 @@ exports.createBusiness = async (req, res, next) => {
 
 exports.updateBusiness = async (req, res, next) => {
     try {
-        const { businessId } = req.params;
-        const { name, description, status, image } = req.body;
-        const businessExists = await Business.findByPK(businessId);
+        const { businessId, name, description, status, image } = req.body;
+        const businessExists = await Business.findByPk(businessId);
         if (!businessExists) {
             const error = new Error("Business doesn't exists.");
             error.statusCode = 404;
             throw error;
         }
+        console.log(businessExists.name);
         await businessExists.update({
             name: name,
             description: description,
             status: status,
-            image: image
+            image: image,
+            userId: req.userId
         });
         res.status(200).json({ message: "Business updated successfully.", business: businessExists });
 
@@ -96,7 +112,7 @@ exports.updateBusiness = async (req, res, next) => {
 
 exports.deleteBusiness = async (req, res, next) => {
     try {
-        const { businessId } = req.params;
+        const { businessId } = req.body;
         const businessExists = await Business.findByPk(businessId);
         if (!businessExists) {
             const error = new Error("Business doesn't exists.");

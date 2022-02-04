@@ -4,7 +4,7 @@ const { body } = require('express-validator');
 const authController = require('../controllers/auth');
 const router = express.Router();
 
-router.put('/login', authController.login);
+router.post('/login', authController.login);
 router.post('/signup',
     body('email')
         .trim()
@@ -12,6 +12,6 @@ router.post('/signup',
         .withMessage("Please enter a valid email."),
     body('password')
         .trim()
-        .isLength({ min: 8 }), authController.signUp);
+        .isLength({ min: 6 }), authController.signUp);
 
 module.exports = router;
